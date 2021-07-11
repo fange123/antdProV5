@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Col, Pagination, Row, Space, Table } from 'antd';
+import {  Card, Col, Pagination, Row, Space, Table } from 'antd';
 import { PageContainer } from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
 import {useRequest} from 'umi'
+import ActionsBuild from './build/ActionBuild';
+import ColumnBuild from './build/ColumnBuild';
 
 interface IProps {}
 
@@ -22,14 +24,15 @@ const Index: React.FC<IProps> = props => {
     setPerPage(_per_page)
   }
 
+
+
   const beforeTableLayout = ()=> {
     return(
       <Row>
         <Col xs={24} sm={12}>...</Col>
         <Col xs={24} sm={12} className={styles.table_tool_bar}>
           <Space>
-            <Button type='primary'>Add</Button>
-            <Button type='primary'>Add2</Button>
+            {ActionsBuild(init?.data?.layout?.tableToolBar)}
           </Space>
         </Col>
       </Row>
@@ -61,7 +64,7 @@ const Index: React.FC<IProps> = props => {
     <Card>
     {beforeTableLayout()}
     <Table dataSource={init?.data?.dataSource}
-    columns={init?.data?.layout?.tableColumn.filter((item)=> item.hideInColumn !== true)}
+    columns={ColumnBuild(init?.data?.layout?.tableColumn)}
     pagination={false}
     loading={init.loading}
     />

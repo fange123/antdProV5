@@ -64,30 +64,15 @@ declare module BasicListApi {
       sorter?: boolean;
       mode: string;
       actions: Action[];
+      [key: string]: any// 接收其他多个任意属性的定义
   }
 
-  export interface TableToolBar {
-      component: string;
-      text: string;
-      type: string;
-      action: string;
-      id: string;
-      uri: string;
-  }
 
-  export interface BatchToolBar {
-      component: string;
-      text: string;
-      type: string;
-      action: string;
-      uri: string;
-      method: string;
-  }
 
   export interface Layout {
       tableColumn: TableColumn[];
-      tableToolBar: TableToolBar[];
-      batchToolBar: BatchToolBar[];
+      tableToolBar: Action[];
+      batchToolBar: Action[];
   }
 
   export interface Pivot {
