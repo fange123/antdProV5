@@ -6,25 +6,39 @@ import styles from './index.less'
 import {useRequest} from 'umi'
 import ActionsBuild from './build/ActionBuild';
 import ColumnBuild from './build/ColumnBuild';
+import type { SorterResult } from 'antd/lib/table/interface';
 
 interface IProps {}
 
 const Index: React.FC<IProps> = props => {
   const [page, setPage] = useState<number>(1)
   const [perPage, setPerPage] = useState<number>(10)
-  const init = useRequest<{data: BasicListApi.Data}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${page}&per_page=${perPage}`)
+  const [orders, setOrders] = useState<string>('desc')
+  const init = useRequest<{data: BasicListApi.Data}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${page}&per_page=${perPage}&sort=create_time&order=${orders}`)
 
   useEffect(() => {
     init.run()
 
-  }, [page,perPage])
+  }, [page,perPage,orders])
 
   const paginationHandle = (_page,_per_page) => {
     setPage(_page)
     setPerPage(_per_page)
   }
 
+const handleTableChange = (pagination: any,_: any,sorter: SorterResult<BasicListApi.DataSource>) => {
+  const { order, field } = sorter
+  let ordering = ''
+  if (field === 'create_time') {
+    ordering = order === 'ascend' ? 'asc':'desc'
+  }
+  setOrders(ordering)
 
+
+
+
+
+}
 
   const beforeTableLayout = ()=> {
     return(
@@ -67,6 +81,7 @@ const Index: React.FC<IProps> = props => {
     columns={ColumnBuild(init?.data?.layout?.tableColumn)}
     pagination={false}
     loading={init.loading}
+    onChange={handleTableChange}
     />
     {afterTableLayout()}
     </Card>
