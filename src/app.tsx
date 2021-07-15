@@ -1,6 +1,6 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-layout';
 import { PageLoading } from '@ant-design/pro-layout';
-import { notification } from 'antd';
+import { message, notification } from 'antd';
 import type { RequestConfig, RunTimeLayoutConfig } from 'umi';
 import { history, Link } from 'umi';
 import RightContent from '@/components/RightContent';
@@ -88,14 +88,51 @@ export async function getInitialState(): Promise<{
  */
 export const request: RequestConfig = {
   errorHandler: (error: any) => {
-    const { response } = error;
+    switch (error.name) {
+      case 'BizError':
+         //业务错误
+        if(error.data.message){
+          message.error({
+            content: error.data.message,
+            key:'process',
+            duration:20
+          })
 
-    if (!response) {
-      notification.error({
-        description: '您的网络发生异常，无法连接服务器',
-        message: '网络异常',
-      });
+      }else {
+        message.error({
+          content: '业务错误，请再次尝试',
+          key:'process',
+          duration:20
+        })
+
+      }
+
+        break;
+      case 'ResponseError':
+       //请求错误
+      message.error({
+        content: `${error.response.status}${error.response.statusText}. 请重试`,
+        key:'process',
+        duration:20
+      })
+
+      break;
+      case 'TypeError':
+        message.error({
+          content: `网络错误. 请重试`,
+          key:'process',
+          duration:20
+        })
+
+
+      default:
+        break;
     }
+
+
+
+
+
     throw error;
   },
 };

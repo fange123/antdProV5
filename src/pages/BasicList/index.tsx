@@ -17,39 +17,44 @@ const Index: React.FC<IProps> = props => {
   const [orders, setOrders] = useState<string>('desc')
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [modalUrl, setModalUrl] = useState<string>('')
-  const init = useRequest<{data: BasicListApi.Data}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${page}&per_page=${perPage}&sort=create_time&order=${orders}`)
+  const init = useRequest<{data: BasicListApi.ListData}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${page}&per_page=${perPage}&sort=create_time&order=${orders}`)
 
   useEffect(() => {
     init.run()
 
   }, [page,perPage,orders])
 
-  const paginationHandle = (_page,_per_page) => {
-    setPage(_page)
+  const paginationHandle = (_page: any,_per_page: any) => {
+    setPage(_page || 0)
     setPerPage(_per_page)
   }
 
-const handleTableChange = (pagination: TablePaginationConfig,_: any,sorter: any) => {
+const handleTableChange = (_: TablePaginationConfig,__: any,sorter: any) => {
   const { order, field } = sorter
   let ordering = ''
   if (field === 'create_time') {
     ordering = order === 'ascend' ? 'asc':'desc'
   }
   setOrders(ordering)
-
-
-
-
-
 }
+const actionHandler = (action: BasicListApi.Action) => {
+  switch (action.action) {
+    case 'modal':
+      setModalUrl(action.uri as string)
+      setModalVisible(true)
+      break;
 
+    default:
+      break;
+  }
+}
   const beforeTableLayout = ()=> {
     return(
       <Row>
         <Col xs={24} sm={12}>...</Col>
         <Col xs={24} sm={12} className={styles.table_tool_bar}>
           <Space>
-            {ActionsBuild(init?.data?.layout?.tableToolBar)}
+            {ActionsBuild(init?.data?.layout?.tableToolBar,actionHandler,false)}
           </Space>
         </Col>
       </Row>
@@ -75,22 +80,14 @@ const handleTableChange = (pagination: TablePaginationConfig,_: any,sorter: any)
       </Row>
     )
   }
-  const searchLayout = ()=> {
-    return(
-      <div>
-        <Button type='primary' onClick={()=>{
-          setModalUrl('https://public-api-v2.aspirantzhang.com/api/admins/add?X-API-KEY=antd')
-          setModalVisible(true)
-        }}>add</Button>
-      </div>
-    )
-  }
+  const searchLayout = ()=> {}
+
   return <PageContainer>
     {searchLayout()}
     <Card>
       {beforeTableLayout()}
       <Table dataSource={init?.data?.dataSource}
-      columns={ColumnBuild(init?.data?.layout?.tableColumn)}
+      columns={ColumnBuild(init?.data?.layout?.tableColumn,actionHandler)}
       pagination={false}
       rowKey='id'
       loading={init.loading}

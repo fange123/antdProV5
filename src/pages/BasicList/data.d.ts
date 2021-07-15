@@ -1,128 +1,78 @@
 declare module BasicListApi {
+  type ActionHandler = (action:  BasicListApi.Action) => void
 
-  export interface Page {
-      title: string;
-      type: string;
-      searchBar: boolean;
-      trash: boolean;
+  type Page ={
+     title: string;
+    type: string;
+    searchBar?: boolean;
+    trash?: boolean;
   }
 
-  export interface Child2 {
-      id: number;
-      parent_id: number;
-      name: string;
-      create_time: Date;
-      delete_time?: any;
-      status: number;
-      value: number;
-      title: string;
-      depth: number;
+
+  type Action ={
+     component: string;
+    text: string;
+    type: string;
+    action: string;
+    uri?: string;
+    method?: string;
+  }
+  type Actions={
+     name: string;
+    title: string;
+    data: Action[];
   }
 
-  export interface Child {
-      id: number;
-      parent_id: number;
-      name: string;
-      create_time: Date;
-      delete_time?: any;
-      status: number;
-      value: number;
-      title: string;
-      depth: number;
-      children: Child2[];
-  }
-
-  export interface Datum {
-      id: number;
-      parent_id: number;
-      name: string;
-      create_time: Date;
-      delete_time?: any;
-      status: number;
-      value: any;
-      title: string;
-      depth: number;
-      children: Child[];
-  }
-
-  export interface Action {
-      component: string;
-      text: string;
-      type: string;
-      action: string;
-      uri: string;
-      method: string;
-  }
-
-  export interface TableColumn {
-      title: string;
-      dataIndex: string;
-      key: string;
-      type: string;
-      data: Datum[];
-      hideInColumn?: boolean;
-      sorter?: boolean;
-      mode: string;
-      actions: Action[];
-      [key: string]: any// 接收其他多个任意属性的定义
+  type Field ={
+     title: string;
+    dataIndex: string;
+    key: string;
+    [key: string]: any// 接收其他多个任意属性的定义
   }
 
 
 
-  export interface Layout {
-      tableColumn: TableColumn[];
-      tableToolBar: Action[];
-      batchToolBar: Action[];
+  type ListLayout ={
+     tableColumn: Field[];
+    tableToolBar: Action[];
+    batchToolBar: Action[];
+  }
+  type PageLayout ={
+     tabs: Tabs[];
+    actions: Actions[];
   }
 
-  export interface Pivot {
-      id: number;
-      admin_id: number;
-      group_id: number;
-      create_time: string;
-      update_time: string;
-      delete_time?: any;
-      status: number;
+
+
+  export type DataSource = Record<string, any>;
+
+  type Meta ={
+     total: number;
+    per_page: number;
+    page: number;
+  }
+  type Tabs ={
+     name: string;
+    title: string;
+    data: Field[];
   }
 
-  export interface Group {
-      id: number;
-      parent_id: number;
-      name: string;
-      create_time: Date;
-      update_time: Date;
-      delete_time?: any;
-      status: number;
-      pivot: Pivot;
+  type ListData ={
+     page: Page;
+    layout: ListLayout;
+    dataSource: DataSource[];
+    meta: Meta;
   }
+  type PageData ={
+     page: Page;
+    layout: PageLayout;
+    dataSource: DataSource;
+  };
 
-  export interface DataSource {
-      id: number;
-      username: string;
-      display_name: string;
-      create_time: Date;
-      delete_time?: any;
-      status: number;
-      groups: Group[];
-  }
-
-  export interface Meta {
-      total: number;
-      per_page: number;
-      page: number;
-  }
-
-  export interface Data {
-      page: Page;
-      layout: Layout;
-      dataSource: DataSource[];
-      meta: Meta;
-  }
-
-  export interface RootObject {
-      success: boolean;
+  type RootObject ={
+     success: boolean;
       message: string;
-      data: Data;
+      data:  PageData | ListData;
   }
 
 }
