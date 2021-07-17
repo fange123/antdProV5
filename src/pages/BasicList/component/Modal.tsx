@@ -9,7 +9,7 @@ import { setFieldsAdaptor, submitFieldsAdaptor } from '../helper';
 interface IProps {
   modalVisible: boolean
   modalUrl: string
-  hideModal: () => void
+  hideModal: (reload?: boolean) => void
 }
 const layout = {
   labelCol: { span: 6},
@@ -34,7 +34,7 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
     const {uri,method,...formValue} = value
     return{
       url: `https://public-api-v2.aspirantzhang.com${uri}`,
-      method: 'post',
+      method,
       // TODO:写data就不需要body和JSON.stringify
       data:{
         'X-API-KEY': 'antd',
@@ -50,7 +50,7 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
         key:'process',
         duration:20
       })
-      hideModal()
+      hideModal(true)
     },
     formatResult:(res)=> {
       return res
@@ -95,6 +95,12 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
       case 'submit':
         onFinish(action)
         break;
+      case 'cancel':
+        hideModal(false)
+        break;
+      case 'reset':
+       form.resetFields()
+        break;
 
       default:
         break;
@@ -106,7 +112,9 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
     visible={modalVisible}
 
     // onOk={()=>handleOk}
-    onCancel={hideModal}
+    onCancel={()=> {
+      hideModal()
+    }}
     footer={ActionsBuild(init?.data?.layout?.actions[0]?.data,actionHandler,request.loading)}
     // TODO: 点击遮罩层不能关闭弹框
     maskClosable={false}
