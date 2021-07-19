@@ -11,7 +11,7 @@ export const submitFieldsAdaptor = (data: any) => {
 }
 
 export const setFieldsAdaptor = (data: BasicListApi.PageData) => {
-  if(data?.layout?.tabs && data?.dataSource){
+  if(data?.layout?.tabs && data.dataSource){
     const result = {}
     // 不需要返回值使用foreach遍历
     data.layout.tabs.forEach((tab)=> {

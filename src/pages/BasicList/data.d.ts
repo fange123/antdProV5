@@ -1,5 +1,5 @@
 declare module BasicListApi {
-  type ActionHandler = (action:  BasicListApi.Action) => void
+  type ActionHandler = (action:  BasicListApi.Action,record: any) => void
 
   type Page ={
      title: string;
@@ -27,6 +27,7 @@ declare module BasicListApi {
      title: string;
     dataIndex: string;
     key: string;
+    sorter?: boolean,
     [key: string]: any// 接收其他多个任意属性的定义
   }
 

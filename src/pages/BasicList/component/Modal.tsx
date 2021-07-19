@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import {Form, message, Modal as AntdModal} from 'antd'
+import {Form, message, Modal as AntdModal, Spin} from 'antd'
 import {useRequest} from 'umi'
 import FormBuild from '../build/FormBuild'
 import ActionsBuild from '../build/ActionBuild';
@@ -110,7 +110,6 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
     <AntdModal
     title={init?.data?.page?.title}
     visible={modalVisible}
-
     // onOk={()=>handleOk}
     onCancel={()=> {
       hideModal()
@@ -120,17 +119,21 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
     maskClosable={false}
     forceRender
     >
-    <Form {...layout} form = {form} initialValues={
-      {
-        create_time:moment(),
-        update_time:moment(),
-        status:true
+   {
+     init.loading ? (<Spin tip='loading'/>) : (
+      <Form {...layout} form = {form} initialValues={
+        {
+          create_time:moment(),
+          update_time:moment(),
+          status:true
+        }
       }
-    }
-    onFinish={onFinish}
-    >
-    {FormBuild(init?.data?.layout?.tabs[0]?.data)}
-    </Form>
+      onFinish={onFinish}
+      >
+      {FormBuild(init?.data?.layout?.tabs[0]?.data)}
+      </Form>
+     )
+   }
     </AntdModal>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {  Card, Col, message, Modal, Pagination, Row, Space, Table } from 'antd';
+import {  Card, Col, message, Pagination,Modal, Row, Space, Table } from 'antd';
 import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
@@ -8,6 +8,7 @@ import ActionsBuild from './build/ActionBuild';
 import ColumnBuild from './build/ColumnBuild';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import type {  TablePaginationConfig } from 'antd/lib/table/interface';
+import AntdModal from './component/Modal';
 
 
 
@@ -16,23 +17,26 @@ const { confirm } = Modal;
 
 
 const Index: React.FC<IProps> = props => {
-  const [page, setPage] = useState<number>(1)
-  const [perPage, setPerPage] = useState<number>(10)
+  const [pageQuery, setPageQuery] = useState<string>('')
   const [orders, setOrders] = useState<string>('desc')
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
   const [modalUrl, setModalUrl] = useState<string>('')
   const [column, setColumn] = useState<BasicListApi.Field[]>([])
-  const init = useRequest<{data: BasicListApi.ListData}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${page}&per_page=${perPage}&sort=create_time&order=${orders}`)
-
+  const init = useRequest<{data: BasicListApi.ListData}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${pageQuery}&sort=create_time&order=${orders}`)
   useEffect(() => {
     init.run()
-  }, [page,perPage,orders,modalVisible])
+  }, [pageQuery,orders,modalVisible])
+  useEffect(() => {
+    if(modalUrl){
+      setModalVisible(true)
+    }
 
-  const paginationHandle = (_page: any,_per_page: any) => {
-    setPage(_page || 0)
-    setPerPage(_per_page)
+  }, [modalUrl])
+
+  const paginationHandle = (page: any,perPage: any) => {
+    setPageQuery(`${page}&per_page=${perPage}`)
   }
   const request = useRequest((value) => {
     message.loading({
@@ -73,32 +77,39 @@ const handleTableChange = (_: TablePaginationConfig,__: any,sorter: any) => {
   }
   setOrders(ordering)
 }
-const batchOverview = () => {
+const batchOverview = (dataSource: BasicListApi.Field[]) => {
+  const columns = ColumnBuild(init?.data?.layout?.tableColumn,actionHandler)
+  const singleColumn = ()=> {
+    return [columns[0],columns[1]]
+  }
+
   return(
     <Table rowKey='id'
     size='small'
-    dataSource={selectedRows}
+    dataSource={dataSource}
     pagination={false}
-    columns={column.filter((_,index)=> index < 2)}/>
+    columns={singleColumn()}/>
   )
 }
-const actionHandler = (action: BasicListApi.Action,record?: any) => {
+function actionHandler(action: BasicListApi.Action,record: BasicListApi.Field) {
+
   switch (action.action) {
     case 'modal':
 
-      setModalUrl( action.uri?.replace(/:\w+/g,(field)=> {
+      setModalUrl( (action.uri || '').replace(/:\w+/g,(field)=> {
         return record[field.replace(":","")]
-      }) as string)
-      setModalVisible(true)
+      }))
       break;
     case 'reload':
       init.run()
       break;
+    case 'deletePermanently':
+    case 'restore':
     case 'delete':
       confirm({
         title: '确定要删除一下选项吗？',
         icon: <ExclamationCircleOutlined />,
-        content: batchOverview(),
+        content: batchOverview(Object.keys(record).length ? [record] : selectedRows),
         okText: 'Yes',
         okType: 'danger',
         cancelText: 'No',
@@ -108,8 +119,8 @@ const actionHandler = (action: BasicListApi.Action,record?: any) => {
           return request.run({
             uri:action.uri,
             method:action.method,
-            type:'delete',
-            ids:selectedRowKeys
+            type:action.action,
+            ids:Object.keys(record).length ? [record.id] : selectedRows
           })
         },
         onCancel() {
@@ -144,8 +155,8 @@ const actionHandler = (action: BasicListApi.Action,record?: any) => {
             showTotal={total => `Total ${total} items`}
             defaultPageSize={20}
             defaultCurrent={1}
-            current={init?.data?.meta?.page || 1}
-            pageSize={init?.data?.meta?.per_page || 10}
+            current={init.data?.meta?.page || 1}
+            pageSize={init.data?.meta?.per_page || 10}
            total={init?.data?.meta?.total || 0}
            onChange={paginationHandle}
            onShowSizeChange={paginationHandle}
@@ -161,6 +172,7 @@ const actionHandler = (action: BasicListApi.Action,record?: any) => {
       init.run()
     }
     setModalVisible(false)
+    setModalUrl('')
   }
   const rowSelection = {
     selectedRowKeys,
@@ -178,12 +190,12 @@ const actionHandler = (action: BasicListApi.Action,record?: any) => {
 
   }
   useEffect(() => {
-    if(init?.data?.layout?.tableColumn){
-      setColumn(ColumnBuild(init?.data?.layout?.tableColumn,actionHandler))
+    if(init.data?.layout?.tableColumn){
+      setColumn(ColumnBuild(init.data.layout.tableColumn,actionHandler))
 
     }
 
-  }, [init?.data?.layout?.tableColumn])
+  }, [init.data?.layout?.tableColumn])
   return <PageContainer>
     {searchLayout()}
     <Card>
@@ -198,7 +210,7 @@ const actionHandler = (action: BasicListApi.Action,record?: any) => {
       />
       {afterTableLayout()}
     </Card>
-    <Modal
+    <AntdModal
       modalVisible = {modalVisible}
       hideModal={hideModal}
       modalUrl = {modalUrl}
