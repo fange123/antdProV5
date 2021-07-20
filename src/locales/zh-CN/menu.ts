@@ -50,4 +50,5 @@ export default {
   'menu.editor.mind': '脑图编辑器',
   'menu.editor.koni': '拓扑编辑器',
   'menu.basic-list': '基础列表',
+  'menu.single-page': '单页列表',
 };

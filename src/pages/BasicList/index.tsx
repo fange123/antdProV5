@@ -3,7 +3,7 @@ import {  Card, Col, message, Pagination,Modal, Row, Space, Table } from 'antd';
 import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
-import {useRequest} from 'umi'
+import {useRequest,history} from 'umi'
 import ActionsBuild from './build/ActionBuild';
 import ColumnBuild from './build/ColumnBuild';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
@@ -103,6 +103,14 @@ function actionHandler(action: BasicListApi.Action,record: BasicListApi.Field) {
     case 'reload':
       init.run()
       break;
+    case 'page':{
+      const uri =  (action.uri || '').replace(/:\w+/g,(field)=> {
+        return record[field.replace(":","")]
+      });
+      history.push(`/basic-list${uri}`)
+      break;
+    }
+
     case 'deletePermanently':
     case 'restore':
     case 'delete':
