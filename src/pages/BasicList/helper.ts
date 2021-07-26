@@ -6,6 +6,15 @@ export const submitFieldsAdaptor = (data: any) => {
     if(moment.isMoment(data[item])){
       result[item]  = moment(data[item]).format()
     }
+    if(Array.isArray(data[item])){
+      result[item] = data[item].map((innerValue: any)=> {
+        if(moment.isMoment(innerValue)){
+           result[item]  = moment(innerValue).format()
+        }
+        return result
+      })
+
+    }
   })
   return result
 }

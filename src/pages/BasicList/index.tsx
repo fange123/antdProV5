@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import {  Card, Col, message, Pagination,Modal, Row, Space, Table } from 'antd';
+import {  Card, Col, message, Pagination,Modal, Row, Space, Table, Tooltip, Button, Form, InputNumber } from 'antd';
 import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
 import {useRequest,history} from 'umi'
 import ActionsBuild from './build/ActionBuild';
 import ColumnBuild from './build/ColumnBuild';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import type {  TablePaginationConfig } from 'antd/lib/table/interface';
 import AntdModal from './component/Modal';
+import {stringify} from 'query-string'
+import { useToggle } from 'ahooks';
+import SearchBuild from './build/SearchBuild';
+import { submitFieldsAdaptor } from './helper';
+import QueueAnim from 'rc-queue-anim';
 
 
 
@@ -22,9 +27,21 @@ const Index: React.FC<IProps> = props => {
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
+  const [searchVisible, setSearchAction] = useToggle<boolean>(false)
   const [modalUrl, setModalUrl] = useState<string>('')
   const [column, setColumn] = useState<BasicListApi.Field[]>([])
-  const init = useRequest<{data: BasicListApi.ListData}>(`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${pageQuery}&sort=create_time&order=${orders}`)
+
+  const [form] = Form.useForm()
+  const init = useRequest<{data: BasicListApi.ListData}>((values: any)=> {
+    return {
+      url:`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${pageQuery}&sort=create_time&order=${orders}`,
+      params:values,
+      paramsSerializer:(param: any)=> {
+        return stringify(param,{arrayFormat:'comma',skipEmptyString:true,skipNull:true})
+
+      }
+    }
+  })
   useEffect(() => {
     init.run()
   }, [pageQuery,orders,modalVisible])
@@ -91,6 +108,10 @@ const batchOverview = (dataSource: BasicListApi.Field[]) => {
     columns={singleColumn()}/>
   )
 }
+const onFinish = (value: any) => {
+  submitFieldsAdaptor(init.run(value))
+
+}
 function actionHandler(action: BasicListApi.Action,record: BasicListApi.Field) {
 
   switch (action.action) {
@@ -147,6 +168,9 @@ function actionHandler(action: BasicListApi.Action,record: BasicListApi.Field) {
       <Row>
         <Col xs={24} sm={12}>...</Col>
         <Col xs={24} sm={12} className={styles.table_tool_bar}>
+            <Button type={searchVisible ? 'primary' : 'default'} shape="circle" icon={<SearchOutlined />} onClick={()=> {
+              setSearchAction.toggle()
+            }}/>
           <Space>
             {ActionsBuild(init?.data?.layout?.tableToolBar,actionHandler)}
           </Space>
@@ -174,7 +198,42 @@ function actionHandler(action: BasicListApi.Action,record: BasicListApi.Field) {
       </Row>
     )
   }
-  const searchLayout = ()=> {}
+  const searchLayout = () => {
+    return (
+        searchVisible && (
+          <Card className={styles.searchForm} key="searchForm">
+            <Form onFinish={onFinish} form={form}>
+              <Row gutter={24}>
+                <Col sm={6}>
+                  <Form.Item label="ID" name="id" key="id">
+                    <InputNumber style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+                {SearchBuild(init.data?.layout.tableColumn)}
+              </Row>
+              <Row>
+                <Col sm={24} className={styles.right}>
+                  <Space>
+                    <Button type="primary" htmlType="submit">
+                      Submit
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        init.run();
+                        form.resetFields();
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </Space>
+                </Col>
+              </Row>
+            </Form>
+          </Card>
+        )
+    );
+  };
+
   const hideModal = (reload=false) => {
     if(reload){
       init.run()
