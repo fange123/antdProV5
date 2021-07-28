@@ -1,14 +1,12 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-layout';
 import { PageLoading } from '@ant-design/pro-layout';
-import { message, notification } from 'antd';
+import { message } from 'antd';
 import type { RequestConfig, RunTimeLayoutConfig } from 'umi';
-import { history, Link } from 'umi';
+import { history} from 'umi';
 import RightContent from '@/components/RightContent';
 import Footer from '@/components/Footer';
-import { currentUser as queryCurrentUser } from './services/ant-design-pro/api';
-import { BookOutlined, LinkOutlined } from '@ant-design/icons';
+import { currentUser as queryCurrentUser,currentMenu as queryCurrentMenu } from './services/ant-design-pro/api';
 
-const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
 /** 获取用户信息比较慢的时候会展示一个 loading */
@@ -22,7 +20,10 @@ export const initialStateConfig = {
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
+  currentMenu?: any;
+  current?: API.CurrentUser;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  fetchMenuInfo?: () => Promise<any>;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -33,17 +34,30 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
+  const fetchMenuInfo = async () => {
+    try {
+      const currentMenu = await queryCurrentMenu();
+      return currentMenu;
+    } catch (error) {
+      message.error('获取菜单数据失败',10)
+    }
+    return undefined;
+  };
   // 如果是登录页面，不执行
   if (history.location.pathname !== loginPath) {
     const currentUser = await fetchUserInfo();
+    const currentMenu = await fetchMenuInfo();
     return {
       fetchUserInfo,
+      fetchMenuInfo,
       currentUser,
+      currentMenu,
       settings: {},
     };
   }
   return {
     fetchUserInfo,
+    fetchMenuInfo,
     settings: {},
   };
 }
@@ -90,7 +104,7 @@ export const request: RequestConfig = {
   errorHandler: (error: any) => {
     switch (error.name) {
       case 'BizError':
-         //业务错误
+         // 业务错误
         if(error.data.message){
           message.error({
             content: error.data.message,
@@ -109,7 +123,7 @@ export const request: RequestConfig = {
 
         break;
       case 'ResponseError':
-       //请求错误
+       // 请求错误
       message.error({
         content: `${error.response.status}${error.response.statusText}. 请重试`,
         key:'process',
@@ -123,8 +137,7 @@ export const request: RequestConfig = {
           key:'process',
           duration:20
         })
-
-
+        break
       default:
         break;
     }
@@ -153,19 +166,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
         history.push(loginPath);
       }
     },
-    links: isDev
-      ? [
-          <Link to="/umi/plugin/openapi" target="_blank">
-            <LinkOutlined />
-            <span>OpenAPI 文档</span>
-          </Link>,
-          <Link to="/~docs">
-            <BookOutlined />
-            <span>业务组件文档</span>
-          </Link>,
-        ]
-      : [],
+
     menuHeaderRender: undefined,
+    menuDataRender:()=> {
+      return initialState?.currentMenu
+
+    },
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     ...initialState?.settings,

@@ -3,7 +3,7 @@ import {  Card, Col, message, Pagination,Modal, Row, Space, Table, Tooltip, Butt
 import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
-import {useRequest,history} from 'umi'
+import {useRequest,history,useLocation} from 'umi'
 import ActionsBuild from './build/ActionBuild';
 import ColumnBuild from './build/ColumnBuild';
 import { ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
@@ -13,7 +13,6 @@ import {stringify} from 'query-string'
 import { useToggle } from 'ahooks';
 import SearchBuild from './build/SearchBuild';
 import { submitFieldsAdaptor } from './helper';
-import QueueAnim from 'rc-queue-anim';
 
 
 
@@ -31,10 +30,12 @@ const Index: React.FC<IProps> = props => {
   const [modalUrl, setModalUrl] = useState<string>('')
   const [column, setColumn] = useState<BasicListApi.Field[]>([])
 
+  const location = useLocation()
+
   const [form] = Form.useForm()
   const init = useRequest<{data: BasicListApi.ListData}>((values: any)=> {
     return {
-      url:`https://public-api-v2.aspirantzhang.com/api/admins?X-API-KEY=antd&page=${pageQuery}&sort=create_time&order=${orders}`,
+      url:`https://public-api-v2.aspirantzhang.com${location.pathname.replace('/basic-list','')}?X-API-KEY=antd&page=${pageQuery}&sort=create_time&order=${orders}`,
       params:values,
       paramsSerializer:(param: any)=> {
         return stringify(param,{arrayFormat:'comma',skipEmptyString:true,skipNull:true})
@@ -44,7 +45,7 @@ const Index: React.FC<IProps> = props => {
   })
   useEffect(() => {
     init.run()
-  }, [pageQuery,orders,modalVisible])
+  }, [pageQuery,orders,modalVisible,location.pathname])
   useEffect(() => {
     if(modalUrl){
       setModalVisible(true)
