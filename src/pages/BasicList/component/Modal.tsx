@@ -44,6 +44,7 @@ const Modal: React.FC<IProps> = ({modalVisible,modalUrl,hideModal}) => {
     }
   }, {
     manual: true,
+    throttleInterval:1000,
     onSuccess:(data)=> {
       message.success({
         content: data.message,

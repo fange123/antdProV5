@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {  Card, Col, message, Pagination,Modal, Row, Space, Table, Tooltip, Button, Form, InputNumber } from 'antd';
+import {  Card, Col, message, Pagination,Modal, Row, Space, Table,  Button, Form, InputNumber } from 'antd';
 import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
 import styles from './index.less'
 // useRequest从umi中获取接口数据的一个工具
@@ -10,7 +10,7 @@ import { ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import type {  TablePaginationConfig } from 'antd/lib/table/interface';
 import AntdModal from './component/Modal';
 import {stringify} from 'query-string'
-import { useToggle } from 'ahooks';
+import { useToggle,useUpdateEffect } from 'ahooks';
 import SearchBuild from './build/SearchBuild';
 import { submitFieldsAdaptor } from './helper';
 
@@ -30,6 +30,7 @@ const Index: React.FC<IProps> = props => {
   const [modalUrl, setModalUrl] = useState<string>('')
   const [column, setColumn] = useState<BasicListApi.Field[]>([])
 
+
   const location = useLocation()
 
   const [form] = Form.useForm()
@@ -43,9 +44,11 @@ const Index: React.FC<IProps> = props => {
       }
     }
   })
-  useEffect(() => {
-    init.run()
-  }, [pageQuery,orders,modalVisible,location.pathname])
+  useUpdateEffect(()=> {
+      init.run()
+
+  },[orders,location.pathname,modalVisible,pageQuery])
+
   useEffect(() => {
     if(modalUrl){
       setModalVisible(true)
@@ -75,6 +78,7 @@ const Index: React.FC<IProps> = props => {
     }
   }, {
     manual: true,
+    throttleInterval: 1000,
     onSuccess:(data)=> {
       message.success({
         content: data.message,
