@@ -9,7 +9,7 @@ export async function currentUser(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
-export async function currentMenu(options?: { [key: string]: any }) {
+export async function currentMenu(options?:Record<string,unknown>) {
   return request('https://public-api-v2.aspirantzhang.com/api/menus/backend', {
     method: 'GET',
     ...(options || {}),
