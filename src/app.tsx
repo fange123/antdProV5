@@ -1,11 +1,14 @@
-import type { Settings as LayoutSettings , MenuDataItem} from '@ant-design/pro-layout';
+import type { Settings as LayoutSettings, MenuDataItem } from '@ant-design/pro-layout';
 import { PageLoading } from '@ant-design/pro-layout';
 import { message } from 'antd';
 import type { RequestConfig, RunTimeLayoutConfig } from 'umi';
-import { history} from 'umi';
+import { history } from 'umi';
 import RightContent from '@/components/RightContent';
 import Footer from '@/components/Footer';
-import { currentUser as queryCurrentUser,currentMenu as queryCurrentMenu } from './services/ant-design-pro/api';
+import {
+  currentUser as queryCurrentUser,
+  currentMenu as queryCurrentMenu,
+} from './services/ant-design-pro/api';
 
 const loginPath = '/user/login';
 
@@ -23,7 +26,7 @@ export async function getInitialState(): Promise<{
   currentMenu?: MenuDataItem[];
   current?: API.CurrentUser;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-  fetchMenuInfo?: () => Promise<any>;
+  fetchMenuInfo?: () => Promise<MenuDataItem[]>;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -39,7 +42,7 @@ export async function getInitialState(): Promise<{
       const currentMenu = await queryCurrentMenu();
       return currentMenu;
     } catch (error) {
-      message.error('获取菜单数据失败',10)
+      message.error('获取菜单数据失败', 10);
     }
     return undefined;
   };
@@ -104,47 +107,41 @@ export const request: RequestConfig = {
   errorHandler: (error: any) => {
     switch (error.name) {
       case 'BizError':
-         // 业务错误
-        if(error.data.message){
+        // 业务错误
+        if (error.data.message) {
           message.error({
             content: error.data.message,
-            key:'process',
-            duration:20
-          })
-
-      }else {
-        message.error({
-          content: '业务错误，请再次尝试',
-          key:'process',
-          duration:20
-        })
-
-      }
+            key: 'process',
+            duration: 20,
+          });
+        } else {
+          message.error({
+            content: '业务错误，请再次尝试',
+            key: 'process',
+            duration: 20,
+          });
+        }
 
         break;
       case 'ResponseError':
-       // 请求错误
-      message.error({
-        content: `${error.response.status}${error.response.statusText}. 请重试`,
-        key:'process',
-        duration:20
-      })
+        // 请求错误
+        message.error({
+          content: `${error.response.status}${error.response.statusText}. 请重试`,
+          key: 'process',
+          duration: 20,
+        });
 
-      break;
+        break;
       case 'TypeError':
         message.error({
           content: `网络错误. 请重试`,
-          key:'process',
-          duration:20
-        })
-        break
+          key: 'process',
+          duration: 20,
+        });
+        break;
       default:
         break;
     }
-
-
-
-
 
     throw error;
   },
@@ -168,9 +165,8 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
     },
 
     menuHeaderRender: undefined,
-    menuDataRender:()=> {
-      return initialState?.currentMenu
-
+    menuDataRender: () => {
+      return initialState?.currentMenu;
     },
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,

@@ -9,9 +9,11 @@
 export default {
   dev: {
     '/api/': {
-      target: 'https://preview.pro.ant.design',
+      target: 'https://public-api-v2.aspirantzhang.com/api',
+      // target: 'https://public-api-v2.aspirantzhang.com',
       changeOrigin: true,
-      pathRewrite: { '^': '' },
+      pathRewrite: { '^/api': '' },//意思是 删掉第一个/api
+      // pathRewrite: { '^': '' },
     },
   },
   test: {

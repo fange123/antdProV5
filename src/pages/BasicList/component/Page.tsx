@@ -1,150 +1,142 @@
-import React, { useEffect } from 'react'
-import {Card, Col, Form, message, Row,Space,Spin,Tabs} from 'antd'
-import {useRequest,useLocation,history} from 'umi'
-import { PageContainer ,FooterToolbar} from '@ant-design/pro-layout';
-import FormBuild from '../build/FormBuild'
+import React, { useEffect } from 'react';
+import { Card, Col, Form, message, Row, Space, Spin, Tabs } from 'antd';
+import { useRequest, useLocation, history } from 'umi';
+import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
+import FormBuild from '../build/FormBuild';
 import ActionsBuild from '../build/ActionBuild';
 import moment from 'moment';
 import { setFieldsAdaptor, submitFieldsAdaptor } from '../helper';
-import styles from '../index.less'
+import styles from '../index.less';
 
 interface IProps {
-  modalVisible: boolean
-  modalUrl: string
-  hideModal: (reload?: boolean) => void
+  modalVisible: boolean;
+  modalUrl: string;
+  hideModal: (reload?: boolean) => void;
 }
 const layout = {
-  labelCol: { span: 4},
+  labelCol: { span: 4 },
   wrapperCol: { span: 20 },
 };
 const { TabPane } = Tabs;
 const Page: React.FC<IProps> = () => {
   const [form] = Form.useForm();
-  const location = useLocation()
-  const init = useRequest<{data: BasicListApi.PageData}>(`https://public-api-v2.aspirantzhang.com${location.pathname.replace('/basic-list','')}?X-API-KEY=antd`,
-  {
-    // manual:true,// 手动发请求
-    onError:()=> {
-      history.go(-1)
-      // history.goBack()
-
-    }
-  })
-
-  const request = useRequest((value) => {
-    message.loading({
-      content: 'loading。。。',
-      key:'process',
-      duration:0
-    })
-    const {uri,method,...formValue} = value
-    return{
-      url: `https://public-api-v2.aspirantzhang.com${uri}`,
-      method,
-      // TODO:写data就不需要body和JSON.stringify
-      data:{
-        'X-API-KEY': 'antd',
-        ...submitFieldsAdaptor(formValue),
-      }
-      // body: JSON.stringify({ formValue }),
-    }
-  }, {
-    manual: true,
-    throttleInterval:1000,
-    onSuccess:(data)=> {
-      message.success({
-        content: data.message,
-        key:'process',
-        duration:20
-      })
-      history.goBack()
+  const location = useLocation();
+  const init = useRequest<{ data: BasicListApi.PageData }>(
+    `${location.pathname.replace('/basic-list', '')}`,
+    {
+      // manual:true,// 手动发请求
+      onError: () => {
+        history.go(-1);
+        // history.goBack()
+      },
     },
-    formatResult:(res)=> {
-      return res
-    }
-  });
+  );
+
+  const request = useRequest(
+    (value) => {
+      message.loading({
+        content: 'loading。。。',
+        key: 'process',
+        duration: 0,
+      });
+      const { uri, method, ...formValue } = value;
+      return {
+        url: `${uri}`,
+        method,
+        // TODO:写data就不需要body和JSON.stringify
+        data: {
+          ...submitFieldsAdaptor(formValue),
+        },
+        // body: JSON.stringify({ formValue }),
+      };
+    },
+    {
+      manual: true,
+      throttleInterval: 1000,
+      onSuccess: (data) => {
+        message.success({
+          content: data.message,
+          key: 'process',
+          duration: 20,
+        });
+        history.goBack();
+      },
+      formatResult: (res) => {
+        return res;
+      },
+    },
+  );
 
   // 有值了才能给表单赋值
   useEffect(() => {
-    if(init.data){
-      form.setFieldsValue(setFieldsAdaptor(init?.data))
+    if (init.data) {
+      form.setFieldsValue(setFieldsAdaptor(init?.data));
     }
+  }, [init.data]);
 
-  }, [init.data])
-
-  const onFinish= (action:  BasicListApi.Action) => {
-    request.run(Object.assign(form.getFieldsValue(),{uri:action.uri,method:action.method}))
-  }
-  const actionHandler = (action:  BasicListApi.Action ) => {
+  const onFinish = (action: BasicListApi.Action) => {
+    request.run(Object.assign(form.getFieldsValue(), { uri: action.uri, method: action.method }));
+  };
+  const actionHandler = (action: BasicListApi.Action) => {
     switch (action.action) {
       case 'submit':
-        onFinish(action)
+        onFinish(action);
         break;
       case 'cancel':
-        history.goBack()
+        history.goBack();
         break;
       case 'reset':
-       form.resetFields()
+        form.resetFields();
         break;
 
       default:
         break;
     }
-  }
+  };
   return (
     <PageContainer>
-      {
-        init.loading ? (<Spin tip='loading'/>) : (
-          <Form {...layout} form = {form} initialValues={
-            {
-              create_time:moment(),
-              update_time:moment(),
-              status:true
-            }
-          }
+      {init.loading ? (
+        <Spin tip="loading" />
+      ) : (
+        <Form
+          {...layout}
+          form={form}
+          initialValues={{
+            create_time: moment(),
+            update_time: moment(),
+            status: true,
+          }}
           onFinish={onFinish}
-          >
+        >
           <Row gutter={24}>
             <Col span={16}>
-            <Tabs  type="card" className={styles.tab_wrapper}>
-             {
-               init.data?.layout.tabs.map(item => {
-                 return (
-                  <TabPane tab={item.title} key={item.title}>
-                  <Card>{
-                     FormBuild(item.data)}
-                  </Card>
-                </TabPane>
-                 )
-               })
-             }
-
-            </Tabs>
+              <Tabs type="card" className={styles.tab_wrapper}>
+                {init.data?.layout.tabs.map((item) => {
+                  return (
+                    <TabPane tab={item.title} key={item.title}>
+                      <Card>{FormBuild(item.data)}</Card>
+                    </TabPane>
+                  );
+                })}
+              </Tabs>
             </Col>
             <Col span={8} className={styles.text_center}>
-              {
-                init.data?.layout.actions.map(item => {
-                  return (
-                    <Card key={item.title}>
-                      <Space>{ActionsBuild(item.data,actionHandler) }</Space>
-                    </Card>
-                  )
-                })
-              }
+              {init.data?.layout.actions.map((item) => {
+                return (
+                  <Card key={item.title}>
+                    <Space>{ActionsBuild(item.data, actionHandler)}</Space>
+                  </Card>
+                );
+              })}
             </Col>
-
           </Row>
           <FooterToolbar>
-            { ActionsBuild(init.data?.layout?.actions[0]?.data,actionHandler)
-    }
+            {ActionsBuild(init.data?.layout?.actions[0]?.data, actionHandler)}
           </FooterToolbar>
-          </Form>
-
-        )
-      }
-
+        </Form>
+      )}
     </PageContainer>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

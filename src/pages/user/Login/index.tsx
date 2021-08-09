@@ -49,10 +49,12 @@ const Login: React.FC = () => {
 
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
+    const userMenu = await initialState?.fetchMenuInfo?.();
     if (userInfo) {
       setInitialState({
         ...initialState,
         currentUser: userInfo,
+        currentMenu: userMenu,
       });
     }
   };
@@ -62,7 +64,7 @@ const Login: React.FC = () => {
     try {
       // 登录
       const msg = await login({ ...values, type });
-      if (msg.status === 'ok') {
+      if (msg.success === true) {
         const defaultloginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: '登录成功！',
@@ -84,7 +86,7 @@ const Login: React.FC = () => {
     }
     setSubmitting(false);
   };
-  const { status, type: loginType } = userLoginState;
+  const { success, type: loginType } = userLoginState;
 
   return (
     <div className={styles.container}>
@@ -146,7 +148,7 @@ const Login: React.FC = () => {
               />
             </Tabs>
 
-            {status === 'error' && loginType === 'account' && (
+            {success === false && loginType === 'account' && (
               <LoginMessage
                 content={intl.formatMessage({
                   id: 'pages.login.accountLogin.errorMessage',
@@ -203,7 +205,7 @@ const Login: React.FC = () => {
               </>
             )}
 
-            {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
+            {success === false && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
             {type === 'mobile' && (
               <>
                 <ProFormText
